@@ -24,6 +24,16 @@ export const Landing = () => {
     cargarCatalogos();
   }, []);
 
+  // 🛠️ MODIFICACIÓN 1: Función para procesar la búsqueda de especialistas
+  const manejarBusqueda = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Buscando fisioterapeutas con:", { filtroEspecialidad, filtroDistrito });
+    
+    // Aquí implementaremos la redirección o el filtrado dinámico. 
+    // Por ahora, lanzará un aviso controlado para verificar que el formulario funciona:
+    alert(`Buscando especialistas en el Distrito ID: ${filtroDistrito || 'Todos'} con Especialidad ID: ${filtroEspecialidad || 'Todas'}`);
+  };
+
   return (
     <div className="min-h-screen bg-white text-gray-900 font-sans">
       
@@ -34,7 +44,8 @@ export const Landing = () => {
           <a href="#" className="hover:text-purple-600 transition">Inicio</a>
           <a href="#" className="hover:text-purple-600 transition">Especialistas</a>
           <a href="#" className="hover:text-purple-600 transition">FAQ</a>
-          <a href="#" className="text-purple-600 font-semibold hover:underline">¿Eres fisio? Únete</a>
+          {/* 🛠️ MODIFICACIÓN 2: Enlace directo al registro de profesionales */}
+          <a href="/registro?rol=fisioterapeuta" className="text-purple-600 font-semibold hover:underline">¿Eres fisio? Únete</a>
         </div>
         <div className="flex items-center gap-4">
           <button className="text-sm font-semibold text-gray-700 hover:text-purple-600 transition">Iniciar sesión</button>
@@ -63,7 +74,8 @@ export const Landing = () => {
         </div>
 
         {/* BUSCADOR INTEGRADO EN EL HERO */}
-        <div className="bg-gradient-to-tr from-purple-700 to-indigo-800 p-8 rounded-3xl shadow-xl text-white space-y-5">
+        {/* 🛠️ MODIFICACIÓN 3: Se transformó el div contenedor en un <form> con onSubmit */}
+        <form onSubmit={manejarBusqueda} className="bg-gradient-to-tr from-purple-700 to-indigo-800 p-8 rounded-3xl shadow-xl text-white space-y-5">
           <h3 className="text-xl font-bold tracking-tight">Buscar fisioterapeuta ideal</h3>
           <div className="space-y-4">
             <div>
@@ -71,7 +83,8 @@ export const Landing = () => {
               <select 
                 value={filtroEspecialidad} 
                 onChange={(e) => setFiltroEspecialidad(e.target.value)}
-                className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                disabled={loading}
+                className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
               >
                 <option value="" className="text-black">Todas las especialidades</option>
                 {especialidades.map((esp) => (
@@ -85,7 +98,8 @@ export const Landing = () => {
               <select 
                 value={filtroDistrito} 
                 onChange={(e) => setFiltroDistrito(e.target.value)}
-                className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                disabled={loading}
+                className="w-full p-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-400 disabled:opacity-50"
               >
                 <option value="" className="text-black">Cualquier distrito</option>
                 {distritos.map((dist) => (
@@ -94,11 +108,16 @@ export const Landing = () => {
               </select>
             </div>
 
-            <button className="w-full bg-white hover:bg-purple-50 text-purple-700 font-black py-3.5 rounded-xl shadow-md transition duration-200 mt-2">
-              Buscar Fisioterapeutas
+            {/* 🛠️ MODIFICACIÓN 4: Botón de tipo submit adaptado al estado de carga */}
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-white hover:bg-purple-50 text-purple-700 font-black py-3.5 rounded-xl shadow-md transition duration-200 mt-2 disabled:bg-gray-200 disabled:text-gray-400"
+            >
+              {loading ? 'Cargando filtros...' : 'Buscar Fisioterapeutas'}
             </button>
           </div>
-        </div>
+        </form>
       </header>
 
       {/* SECCIÓN: ¿POR QUÉ FISIOCARE? */}
@@ -172,7 +191,7 @@ export const Landing = () => {
           <div>
             <h5 className="text-white font-bold mb-3">Profesionales</h5>
             <ul className="space-y-2 text-xs">
-              <li><a href="#" className="hover:text-white">Únete como fisio</a></li>
+              <li><a href="/registro?rol=fisioterapeuta" className="hover:text-white">Únete como fisio</a></li>
             </ul>
           </div>
           <div>
@@ -186,4 +205,4 @@ export const Landing = () => {
 
     </div>
   );
-}; 
+};
