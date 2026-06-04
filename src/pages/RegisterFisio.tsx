@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Activity } from 'lucide-react';
-import Step1Datos from '../components/registro-fisio/step1Datos';
-import Step2Profesional from '../components/registro-fisio/step2Profesional';
-import Step3Atencion from '../components/registro-fisio/step3Atencion';
-import Step4Documentos from '../components/registro-fisio/step4Documentos';
+import Step1Datos from '../components/registro-fisio/Step1Datos';
+import Step2Profesional from '../components/registro-fisio/Step2Profesional';
+import Step3Atencion from '../components/registro-fisio/Step3Atencion';
+import Step4Documentos from '../components/registro-fisio/Step4Documentos';
 
 export default function RegistroFisio() {
   const [step, setStep] = useState(1);
