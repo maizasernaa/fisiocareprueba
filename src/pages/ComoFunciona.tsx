@@ -57,9 +57,10 @@ export default function ComoFuncionaPage() {
   const vistas = categoriaActiva === 'todas' ? categorias : categorias.filter((c) => c.id === categoriaActiva);
 
   return (
+    // Se ha asegurado el uso del mismo fondo #F8FAFC para todo el contenedor
     <div className="min-h-screen flex flex-col bg-[#F8FAFC]">
       <main className="flex-grow">
-        {/* Header y Filtros unificados */}
+        {/* Header y Filtros */}
         <section className="bg-white py-16 border-b border-slate-100">
           <div className="mx-auto max-w-4xl px-6 text-center">
             <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EBF4FF]">
@@ -122,7 +123,7 @@ export default function ComoFuncionaPage() {
         </div>
       </main>
 
-      {/* Footer corporativo unificado */}
+      {/* Footer corporativo */}
       <footer className="bg-[#0A1E3D] text-slate-400 pt-16 pb-8">
         <div className="max-w-7xl mx-auto px-6 grid grid-cols-4 gap-10 mb-12">
           <div className="space-y-4">
