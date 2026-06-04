@@ -4,7 +4,11 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Navbar from './components/NavBar';
 import Landing from './pages/Landing'
 import Especialistas from './pages/Especialistas'
-import ComoFunciona from './pages/ComoFunciona' // 1. Importa el componente
+import ComoFunciona from './pages/ComoFunciona'
+import LoginPage from './pages/LoginPage'
+import RegisterPaciente from './pages/RegisterPaciente'
+import SelectionRegister from './pages/SelectionRegister';
+import RegisterFisio from './pages/RegisterFisio';
 import './index.css'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
@@ -15,7 +19,11 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/especialistas" element={<Especialistas />} />
-        <Route path="/como-funciona" element={<ComoFunciona />} /> {/* 2. Agrega la ruta */}
+        <Route path="/como-funciona" element={<ComoFunciona />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/seleccion-registro" element={<SelectionRegister />} />
+        <Route path="/registro-paciente" element={<RegisterPaciente />} />
+        <Route path="/registro-fisio" element={<RegisterFisio />} />
       </Routes>
     </Router>
   </React.StrictMode>,

@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Shield,
   MapPin,
@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 export default function Landing() {
+  const navigate = useNavigate();
   return (
     <div className="min-h-screen bg-white text-slate-800 antialiased font-body">
 
@@ -41,12 +42,18 @@ export default function Landing() {
               Reserva sesiones a domicilio o por videollamada con profesionales colegiados. Recupérate con confianza, en tus tiempos.
             </p>
 
+          {/* BOTONES HERO ACTUALIZADOS */}
             <div className="flex items-center gap-3 pt-1">
-              {/* Este botón ahora redirige instantáneamente a tu nueva pantalla de especialistas */}
-              <Link to="/especialistas" className="btn-primary flex items-center gap-2 px-7 py-3.5">
+              <button 
+                onClick={() => navigate('/login')} 
+                className="btn-primary flex items-center gap-2 px-7 py-3.5"
+              >
                 Soy paciente <ArrowRight className="h-4 w-4" />
-              </Link>
-              <button className="btn-outline flex items-center gap-2 px-7 py-3.5">
+              </button>
+              <button 
+                onClick={() => navigate('/login')} 
+                className="btn-outline flex items-center gap-2 px-7 py-3.5"
+              >
                 Soy fisioterapeuta
               </button>
             </div>
