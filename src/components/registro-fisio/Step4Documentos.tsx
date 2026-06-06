@@ -44,51 +44,86 @@ export default function Step4Documentos({ formData, onBack }: any) {
   };
 
   const submitRegistro = async () => {
-    setLoading(true);
-    try {
-      // 1. Crear usuario en Auth
-      const { data: auth, error: authError } = await supabase.auth.signUp({ 
-        email: formData.email, 
-        password: formData.password,
-        options: { data: { rol: 'fisioterapeuta' } }
-      });
-      if (authError) throw authError;
-      const userId = auth.user!.id;
-
-      // 2. Insertar en tabla fisioterapeutas
-      // Nota: No insertamos en 'usuarios' manualmente; el trigger de la BD lo hace solo.
-      const { error: fisioError } = await supabase.from('fisioterapeutas').insert([{
-        id: userId,
-        nombres: formData.nombres,
-        apellidos: formData.apellidos,
-        celular: formData.celular,
-        colegiatura: formData.colegiatura,
-        anos_experiencia: parseInt(formData.anos_experiencia) || 0,
-        precio_sesion: parseFloat(formData.precio_sesion) || 0,
-        ofrece_domicilio: formData.ofrece_domicilio,
-        ofrece_videollamada: formData.ofrece_videollamada,
-        bio: formData.bio,
-        ...docs
-      }]);
-      if (fisioError) throw fisioError;
-
-      // 3. Guardar especialidades (formData.especialidades ahora contiene UUIDs)
-      if (formData.especialidades && formData.especialidades.length > 0) {
-        const espToInsert = formData.especialidades.map((uuid: string) => ({
-          fisioterapeuta_id: userId,
-          especialidad_id: uuid
-        }));
-        const { error: espError } = await supabase.from('fisioterapeuta_especialidades').insert(espToInsert);
-        if (espError) throw espError;
+      // Validación de documentos obligatorios antes de procesar
+      if (!docs.url_diploma || !docs.url_certificado_colegiatura || !docs.url_dni) {
+        alert("Por favor, sube todos los documentos obligatorios (*).");
+        return;
       }
 
-      alert("¡Registro enviado a verificación!");
-    } catch (e: any) { 
-      console.error("Error final:", e);
-      alert("Error: " + (e.message || "Error inesperado al registrar")); 
-    }
-    setLoading(false);
-  };
+      setLoading(true);
+      try {
+        // 1. Crear usuario en Auth
+        const { data: auth, error: authError } = await supabase.auth.signUp({ 
+          email: formData.email, 
+          password: formData.password,
+          options: { data: { rol: 'fisioterapeuta' } }
+        });
+        if (authError) throw authError;
+
+        // VALIDACIÓN CLAVE: Manejo de la Confirmación de Correo
+        if (!auth.session) {
+          // Guardamos toda la data en el navegador temporalmente
+          const registroPendiente = {
+            userId: auth.user!.id,
+            formData: formData,
+            docs: docs
+          };
+          localStorage.setItem('registroFisioPendiente', JSON.stringify(registroPendiente));
+          
+          alert("¡Cuenta creada con éxito!\n\nTe hemos enviado un enlace de confirmación. Por favor, revisa tu correo (y la carpeta de SPAM), confirma tu cuenta e inicia sesión para finalizar la creación de tu perfil.");
+          
+          setLoading(false);
+          // Opcional: Redirigir a la pantalla de login
+          // window.location.href = '/login';
+          return; // Detenemos la ejecución aquí para evitar el error RLS
+        }
+
+        const userId = auth.user!.id;
+
+        // 2. Insertar en tabla fisioterapeutas (Solo se ejecuta si NO hay confirmación de correo activa)
+        const { error: fisioError } = await supabase.from('fisioterapeutas').insert([{
+          id: userId,
+          nombres: formData.nombres,
+          apellidos: formData.apellidos,
+          celular: formData.celular,
+          colegiatura: formData.colegiatura,
+          anos_experiencia: parseInt(formData.anos_experiencia) || 0,
+          precio_sesion: parseFloat(formData.precio_sesion) || 0,
+          ofrece_domicilio: formData.ofrece_domicilio,
+          ofrece_videollamada: formData.ofrece_videollamada,
+          bio: formData.bio,
+          ...docs
+        }]);
+        if (fisioError) throw fisioError;
+
+        // 3. Guardar especialidades 
+        if (formData.especialidades && formData.especialidades.length > 0) {
+          const espToInsert = formData.especialidades.map((uuid: string) => ({
+            fisioterapeuta_id: userId,
+            especialidad_id: uuid
+          }));
+          const { error: espError } = await supabase.from('fisioterapeuta_especialidades').insert(espToInsert);
+          if (espError) throw espError;
+        }
+
+        // 4. Guardar distritos en la tabla intermedia
+        if (formData.distritos && formData.distritos.length > 0) {
+          const distToInsert = formData.distritos.map((uuid: string) => ({
+            fisioterapeuta_id: userId,
+            distrito_id: uuid
+          }));
+          const { error: distError } = await supabase.from('fisioterapeuta_distritos').insert(distToInsert);
+          if (distError) throw distError;
+        }
+
+        alert("¡Registro enviado a verificación!");
+        
+      } catch (e: any) { 
+        console.error("Error final:", e);
+        alert("Error: " + (e.message || "Error inesperado al registrar")); 
+      }
+      setLoading(false);
+    };
 
   return (
     <div className="space-y-6">
@@ -117,7 +152,7 @@ export default function Step4Documentos({ formData, onBack }: any) {
         <button 
           onClick={submitRegistro} 
           disabled={loading}
-          className="w-2/3 bg-[#1A5C3A] text-white py-4 rounded-xl font-bold"
+          className="w-2/3 bg-[#1A5C3A] text-white py-4 rounded-xl font-bold hover:bg-[#124229] transition-colors disabled:opacity-50"
         >
           {loading ? 'Procesando...' : 'Enviar para verificación'}
         </button>

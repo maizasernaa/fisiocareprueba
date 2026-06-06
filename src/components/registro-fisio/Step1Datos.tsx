@@ -10,6 +10,8 @@ export default function Step1Datos({ onNext }: any) {
     let error = '';
     if (name === 'nombres' && !/^[a-zA-ZÁ-ÿ\s]+$/.test(value)) error = "Solo letras permitidas";
     if (name === 'apellidos' && !/^[a-zA-ZÁ-ÿ\s]+$/.test(value)) error = "Solo letras permitidas";
+    // NUEVO: Validación de formato de correo
+    if (name === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = "Correo inválido";
     if (name === 'password' && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)) 
         error = "Mín. 8 caracteres, 1 mayús, 1 número, 1 especial (@$!%*?&)";
     
@@ -23,10 +25,14 @@ export default function Step1Datos({ onNext }: any) {
   };
 
   const handleSubmit = () => {
-    if (Object.values(errors).every(e => e === '') && d.nombres && d.password) {
+    // NUEVO: Verifica que TODOS los campos tengan algo escrito
+    const todosLlenos = d.nombres && d.apellidos && d.email && d.celular && d.password;
+    const sinErrores = Object.values(errors).every(e => e === '');
+
+    if (todosLlenos && sinErrores) {
       onNext(d);
     } else {
-      alert("Por favor, corrige los errores antes de continuar.");
+      alert("Por favor, llena todos los campos y corrige los errores antes de continuar.");
     }
   };
 
@@ -44,34 +50,57 @@ export default function Step1Datos({ onNext }: any) {
         onChange={handleInputChange} error={errors.apellidos} 
       />
 
-      <input type="email" name="email" placeholder="Correo" className="w-full p-4 border rounded-xl" onChange={handleInputChange} />
+      {/* Correo (Corregido con value y mensaje de error) */}
+      <div className="space-y-1">
+        <input 
+          type="email" 
+          name="email" 
+          placeholder="Correo electrónico" 
+          value={d.email} 
+          className={`w-full p-4 border rounded-xl ${errors.email ? 'border-red-500' : 'border-slate-200'}`} 
+          onChange={handleInputChange} 
+        />
+        {errors.email && (
+          <div className="flex items-center gap-1 text-red-500 text-xs px-1">
+              <AlertCircle size={12} /> {errors.email}
+          </div>
+        )}
+      </div>
       
+      {/* Celular */}
       <input 
-        type="text" // Cambiado a 'text' para tener control total
+        type="text"
         name="celular" 
         placeholder="Celular" 
         value={d.celular}
-        className="w-full p-4 border rounded-xl" 
+        className="w-full p-4 border rounded-xl border-slate-200" 
         onChange={(e) => {
-          // Esto borra inmediatamente cualquier cosa que no sea un número (0-9)
           const soloNumeros = e.target.value.replace(/\D/g, '');
           setD({...d, celular: soloNumeros});
+          // Si quieres validar que tenga 9 dígitos obligatorios, podrías hacerlo en handleSubmit
         }} 
-        maxLength={9} // Opcional: limita a 9 dígitos
+        maxLength={9}
       />
 
       {/* Password con toggle y error */}
-      <div className="relative">
-        <input type={showPass ? 'text' : 'password'} name="password" placeholder="Contraseña" 
-               className={`w-full p-4 border rounded-xl ${errors.password ? 'border-red-500' : ''}`} 
-               onChange={handleInputChange} />
+      <div className="relative space-y-1">
+        <input 
+          type={showPass ? 'text' : 'password'} 
+          name="password" 
+          placeholder="Contraseña" 
+          value={d.password}
+          className={`w-full p-4 border rounded-xl ${errors.password ? 'border-red-500' : 'border-slate-200'}`} 
+          onChange={handleInputChange} 
+        />
         <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-4 text-slate-400">
             {showPass ? <EyeOff size={20}/> : <Eye size={20}/>}
         </button>
         {errors.password && <p className="text-red-500 text-xs mt-1 px-1">{errors.password}</p>}
       </div>
 
-      <button onClick={handleSubmit} className="w-full bg-[#0A1E3D] text-white py-4 rounded-xl font-bold">Continuar</button>
+      <button onClick={handleSubmit} className="w-full bg-[#0A1E3D] text-white py-4 rounded-xl font-bold mt-2">
+        Continuar
+      </button>
     </div>
   );
 }
