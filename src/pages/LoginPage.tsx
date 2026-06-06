@@ -50,50 +50,56 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4 sm:p-6">
       <div className="w-full max-w-md">
+        
+        {/* Logo Superior */}
         <div className="flex justify-center mb-8 gap-2 items-center text-[#0A1E3D]">
           <div className="bg-[#0A1E3D] p-2 rounded-xl">
-             <Activity className="h-6 w-6 text-white" />
+             <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
           </div>
-          <span className="text-2xl font-bold tracking-tight">FisioCare</span>
+          <span className="text-xl sm:text-2xl font-bold tracking-tight">FisioCare</span>
         </div>
 
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-          <div className="flex items-center gap-4 mb-8">
-            <button onClick={() => navigate('/')} className="p-2 hover:bg-slate-100 rounded-full transition">
-              <ArrowLeft className="h-6 w-6 text-[#0A1E3D]" />
+        {/* Tarjeta Principal */}
+        <div className="bg-white p-6 sm:p-8 rounded-[1.5rem] shadow-sm border border-slate-100">
+          
+          <div className="flex items-center gap-3 sm:gap-4 mb-2">
+            <button onClick={() => navigate('/')} className="p-2 -ml-2 hover:bg-slate-100 rounded-full transition shrink-0">
+              <ArrowLeft className="h-5 w-5 sm:h-6 sm:w-6 text-[#0A1E3D]" />
             </button>
-            <h2 className="text-2xl font-bold text-[#0A1E3D]">Bienvenido de nuevo</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-[#0A1E3D]">Bienvenido de nuevo</h2>
           </div>
           
-          <p className="text-slate-500 mb-8 -mt-6 ml-14">Ingresa para continuar</p>
+          <p className="text-slate-500 mb-8 ml-10 sm:ml-12 text-sm sm:text-base">Ingresa para continuar</p>
 
+          {/* Mensaje de Error */}
           {error && (
-            <div className="mb-6 flex items-center gap-3 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">
+            <div className="mb-6 flex items-center gap-3 p-3 sm:p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">
               <AlertCircle className="h-5 w-5 shrink-0" />
-              <p className="text-sm font-medium">{error}</p>
+              <p className="text-xs sm:text-sm font-medium">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleLogin} className="space-y-5">
+          {/* Formulario */}
+          <form onSubmit={handleLogin} className="space-y-4 sm:space-y-5">
             <div className="relative">
               <input 
                 type="email" 
                 placeholder="Correo electrónico" 
-                className="w-full pl-4 pr-12 py-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0A1E3D] outline-none transition"
+                className="w-full pl-4 pr-12 py-3.5 sm:py-4 text-sm sm:text-base rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0A1E3D] outline-none transition"
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={isLoading}
                 required 
               />
-              <Mail className="absolute right-4 top-4 h-5 w-5 text-slate-400" />
+              <Mail className="absolute right-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
             </div>
 
             <div className="relative">
               <input 
                 type={showPassword ? "text" : "password"} 
                 placeholder="Contraseña" 
-                className="w-full pl-4 pr-12 py-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0A1E3D] outline-none transition"
+                className="w-full pl-4 pr-12 py-3.5 sm:py-4 text-sm sm:text-base rounded-xl border border-slate-200 focus:ring-2 focus:ring-[#0A1E3D] outline-none transition"
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
                 required 
@@ -101,7 +107,7 @@ export default function LoginPage() {
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-4 top-4 text-slate-400 hover:text-slate-600"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
               </button>
@@ -110,7 +116,7 @@ export default function LoginPage() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full bg-[#0A1E3D] text-white py-4 rounded-xl font-bold hover:bg-[#122d5a] transition disabled:opacity-70"
+              className="w-full bg-[#0A1E3D] text-white py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base hover:bg-[#122d5a] transition disabled:opacity-70 mt-2"
             >
               {isLoading ? "Validando..." : "Iniciar sesión"}
             </button>
@@ -122,6 +128,7 @@ export default function LoginPage() {
               Regístrate
             </button>
           </p>
+          
         </div>
       </div>
     </div>
