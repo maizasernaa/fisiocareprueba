@@ -29,7 +29,7 @@ export default function AgendarCita() {
     const fetchFisio = async () => {
       const { data } = await supabase
         .from('fisioterapeutas')
-        .select('nombres, apellidos, precio_sesion, ofrece_domicilio, ofrece_videollamada')
+        .select('id, nombres, apellidos, precio_sesion, ofrece_domicilio, ofrece_videollamada')
         .eq('id', id)
         .single();
       
