@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeft, CreditCard, Smartphone, Check } from 'lucide-react';
 
-export default function Step4Pago({ fisio, data, onNext, onBack }: any) {
+export default function Step4Pago({ fisio, onNext, onBack }: any) {
   const [metodo, setMetodo] = useState<'yape' | 'tarjeta'>('yape');
   
   // Estado para el formulario de tarjeta (UI interactiva)
