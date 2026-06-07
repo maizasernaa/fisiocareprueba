@@ -23,7 +23,10 @@ export default function LoginPage() {
         password
       });
 
-      if (authError) throw new Error("Correo o contraseña incorrectos.");
+      // Mensaje mejorado: da pistas sin revelar si el correo existe o no
+      if (authError) {
+        throw new Error("Credenciales inválidas o correo electrónico pendiente de confirmación. Por favor, revisa tu bandeja de entrada.");
+      }
 
       // 2. Obtener rol del usuario (Síncrono con tabla 'usuarios')
       const { data: userData, error: userError } = await supabase
@@ -33,7 +36,7 @@ export default function LoginPage() {
         .single();
 
       if (userError || !userData) {
-        throw new Error("No se pudo cargar el perfil del usuario.");
+        throw new Error("No se pudo cargar el perfil del usuario. Intenta nuevamente.");
       }
 
       // 3. Redirección basada en rol
@@ -50,7 +53,6 @@ export default function LoginPage() {
   };
 
   return (
-    
     <div className="min-h-[calc(100dvh-5rem)] sm:min-h-screen flex items-center justify-center bg-[#F8FAFC] p-4 sm:p-6 pb-20 sm:pb-6">
       <div className="w-full max-w-md">
         
@@ -76,9 +78,9 @@ export default function LoginPage() {
 
           {/* Mensaje de Error */}
           {error && (
-            <div className="mb-6 flex items-center gap-3 p-3 sm:p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">
-              <AlertCircle className="h-5 w-5 shrink-0" />
-              <p className="text-xs sm:text-sm font-medium">{error}</p>
+            <div className="mb-6 flex items-start gap-3 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">
+              <AlertCircle className="h-5 w-5 shrink-0 mt-0.5" />
+              <p className="text-xs sm:text-sm font-medium leading-relaxed">{error}</p>
             </div>
           )}
 
