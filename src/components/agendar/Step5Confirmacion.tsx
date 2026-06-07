@@ -27,7 +27,7 @@ export default function Step5Confirmacion({ fisio, data }: any) {
             distrito_id: data.distrito_id || null,
             direccion_exacta: data.direccion_exacta || null,
             precio: fisio.precio_sesion,
-            estado: 'pendiente' // Se crea como pendiente hasta que el fisio confirme
+            estado: 'programada' 
           }]);
 
         if (insertError) throw insertError;
