@@ -12,8 +12,6 @@ import {
   Home as HomeIcon,
   MessageSquare,
   CheckCircle,
-  Mail,
-  Phone,
   Activity
 } from 'lucide-react';
 
@@ -32,8 +30,7 @@ export default function Especialistas() {
   const [distrito, setDistrito] = useState('todos');
   const [especialidad, setEspecialidad] = useState('todas'); // <- NUEVO FILTRO
   const [precioMax, setPrecioMax] = useState(200);
-  const [calificacionMin, setCalificacionMin] = useState<number | null>(null);
-
+  
   // === EFECTO PARA CARGAR DATOS DE SUPABASE ===
   useEffect(() => {
     const cargarDatos = async () => {
@@ -245,8 +242,8 @@ export default function Especialistas() {
             </div>
 
             {/* Limpiador global */}
-            <button
-              onClick={() => { setBusqueda(''); setModalidad('todos'); setEspecialidad('todas'); setDistrito('todos'); setPrecioMax(250); setCalificacionMin(null); }}
+           <button
+              onClick={() => { setBusqueda(''); setModalidad('todos'); setEspecialidad('todas'); setDistrito('todos'); setPrecioMax(250); }}
               className="w-full bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-200 text-slate-500 hover:text-red-600 py-3 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5"
             >
               ✕ Limpiar filtros
