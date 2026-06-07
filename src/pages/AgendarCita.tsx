@@ -7,6 +7,7 @@ import Step1Modalidad from '../components/agendar/Step1Modalidad';
 import Step2Fecha from '../components/agendar/Step2Fecha';
 import Step3Resumen from '../components/agendar/Step3Resumen';
 import Step4Pago from '../components/agendar/Step4Pago';
+import Step5Confirmacion from '../components/agendar/Step5Confirmacion';
 
 export default function AgendarCita() {
   const { id } = useParams<{ id: string }>();
@@ -116,7 +117,7 @@ export default function AgendarCita() {
           {pasoActual === 2 && <Step2Fecha fisioId={id!} data={reserva} onNext={handleNext} onBack={handleBack} />}
           {pasoActual === 3 && <Step3Resumen fisio={fisio} data={reserva} onNext={handleNext} onBack={handleBack} />}
           {pasoActual === 4 && <Step4Pago fisio={fisio} data={reserva} onNext={handleNext} onBack={handleBack} />}
-          {pasoActual === 5 && <div>Paso 5 (Confirmación en BD) en construcción...</div>}
+          {pasoActual === 5 && <Step5Confirmacion fisio={fisio} data={reserva} />}
 
         </div>
       </div>
