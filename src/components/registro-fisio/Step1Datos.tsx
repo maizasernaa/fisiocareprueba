@@ -10,7 +10,6 @@ export default function Step1Datos({ onNext }: any) {
     let error = '';
     if (name === 'nombres' && !/^[a-zA-ZÁ-ÿ\s]+$/.test(value)) error = "Solo letras permitidas";
     if (name === 'apellidos' && !/^[a-zA-ZÁ-ÿ\s]+$/.test(value)) error = "Solo letras permitidas";
-    // NUEVO: Validación de formato de correo
     if (name === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) error = "Correo inválido";
     if (name === 'password' && !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(value)) 
         error = "Mín. 8 caracteres, 1 mayús, 1 número, 1 especial (@$!%*?&)";
@@ -25,7 +24,6 @@ export default function Step1Datos({ onNext }: any) {
   };
 
   const handleSubmit = () => {
-    // NUEVO: Verifica que TODOS los campos tengan algo escrito
     const todosLlenos = d.nombres && d.apellidos && d.email && d.celular && d.password;
     const sinErrores = Object.values(errors).every(e => e === '');
 
@@ -37,7 +35,7 @@ export default function Step1Datos({ onNext }: any) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 sm:space-y-5">
       {/* Nombres */}
       <InputWithError 
         name="nombres" placeholder="Nombres" value={d.nombres} 
@@ -50,72 +48,93 @@ export default function Step1Datos({ onNext }: any) {
         onChange={handleInputChange} error={errors.apellidos} 
       />
 
-      {/* Correo (Corregido con value y mensaje de error) */}
+      {/* Correo */}
       <div className="space-y-1">
         <input 
           type="email" 
           name="email" 
           placeholder="Correo electrónico" 
           value={d.email} 
-          className={`w-full p-4 border rounded-xl ${errors.email ? 'border-red-500' : 'border-slate-200'}`} 
+          className={`w-full p-3.5 sm:p-4 text-sm sm:text-base border rounded-xl outline-none focus:ring-2 focus:ring-[#0A1E3D] transition ${errors.email ? 'border-red-500' : 'border-slate-200'}`} 
           onChange={handleInputChange} 
         />
         {errors.email && (
-          <div className="flex items-center gap-1 text-red-500 text-xs px-1">
-              <AlertCircle size={12} /> {errors.email}
+          <div className="flex items-center gap-1 text-red-500 text-[11px] sm:text-xs px-1 mt-1">
+              <AlertCircle className="h-3 w-3 shrink-0" /> {errors.email}
           </div>
         )}
       </div>
       
-      {/* Celular */}
-      <input 
-        type="text"
-        name="celular" 
-        placeholder="Celular" 
-        value={d.celular}
-        className="w-full p-4 border rounded-xl border-slate-200" 
-        onChange={(e) => {
-          const soloNumeros = e.target.value.replace(/\D/g, '');
-          setD({...d, celular: soloNumeros});
-          // Si quieres validar que tenga 9 dígitos obligatorios, podrías hacerlo en handleSubmit
-        }} 
-        maxLength={9}
-      />
-
-      {/* Password con toggle y error */}
-      <div className="relative space-y-1">
+      {/* Celular con prefijo */}
+      <div className="flex gap-2">
+        <div className="p-3.5 sm:p-4 rounded-xl border border-slate-200 bg-slate-50 text-sm sm:text-base text-slate-500 font-medium flex items-center justify-center shrink-0">
+          +51
+        </div>
         <input 
-          type={showPass ? 'text' : 'password'} 
-          name="password" 
-          placeholder="Contraseña" 
-          value={d.password}
-          className={`w-full p-4 border rounded-xl ${errors.password ? 'border-red-500' : 'border-slate-200'}`} 
-          onChange={handleInputChange} 
+          type="tel"
+          name="celular" 
+          placeholder="Celular" 
+          value={d.celular}
+          className="w-full p-3.5 sm:p-4 text-sm sm:text-base border rounded-xl border-slate-200 outline-none focus:ring-2 focus:ring-[#0A1E3D] transition" 
+          onChange={(e) => {
+            const soloNumeros = e.target.value.replace(/\D/g, '');
+            setD({...d, celular: soloNumeros});
+          }} 
+          maxLength={9}
         />
-        <button type="button" onClick={() => setShowPass(!showPass)} className="absolute right-4 top-4 text-slate-400">
-            {showPass ? <EyeOff size={20}/> : <Eye size={20}/>}
-        </button>
-        {errors.password && <p className="text-red-500 text-xs mt-1 px-1">{errors.password}</p>}
       </div>
 
-      <button onClick={handleSubmit} className="w-full bg-[#0A1E3D] text-white py-4 rounded-xl font-bold mt-2">
+      {/* Password con toggle centrado */}
+      <div className="space-y-1">
+        <div className="relative">
+          <input 
+            type={showPass ? 'text' : 'password'} 
+            name="password" 
+            placeholder="Contraseña" 
+            value={d.password}
+            className={`w-full p-3.5 sm:p-4 pr-12 text-sm sm:text-base border rounded-xl outline-none focus:ring-2 focus:ring-[#0A1E3D] transition ${errors.password ? 'border-red-500' : 'border-slate-200'}`} 
+            onChange={handleInputChange} 
+          />
+          <button 
+            type="button" 
+            onClick={() => setShowPass(!showPass)} 
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+          >
+              {showPass ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+          </button>
+        </div>
+        {errors.password && (
+          <div className="flex items-start gap-1 text-red-500 text-[11px] sm:text-xs px-1 mt-1 leading-tight">
+            <AlertCircle className="h-3 w-3 shrink-0 mt-0.5" /> 
+            <span>{errors.password}</span>
+          </div>
+        )}
+      </div>
+
+      <button 
+        onClick={handleSubmit} 
+        className="w-full bg-[#0A1E3D] text-white py-3.5 sm:py-4 text-sm sm:text-base rounded-xl font-bold mt-4 hover:bg-[#122d5a] transition"
+      >
         Continuar
       </button>
     </div>
   );
 }
 
-// Componente auxiliar para inputs
+// Componente auxiliar optimizado
 function InputWithError({ name, placeholder, value, onChange, error }: any) {
   return (
     <div className="space-y-1">
       <input 
-        name={name} placeholder={placeholder} value={value} onChange={onChange}
-        className={`w-full p-4 border rounded-xl ${error ? 'border-red-500 focus:ring-red-500' : 'border-slate-200'}`} 
+        name={name} 
+        placeholder={placeholder} 
+        value={value} 
+        onChange={onChange}
+        className={`w-full p-3.5 sm:p-4 text-sm sm:text-base border rounded-xl outline-none focus:ring-2 focus:ring-[#0A1E3D] transition ${error ? 'border-red-500' : 'border-slate-200'}`} 
       />
       {error && (
-        <div className="flex items-center gap-1 text-red-500 text-xs px-1">
-            <AlertCircle size={12} /> {error}
+        <div className="flex items-center gap-1 text-red-500 text-[11px] sm:text-xs px-1 mt-1">
+            <AlertCircle className="h-3 w-3 shrink-0" /> {error}
         </div>
       )}
     </div>
