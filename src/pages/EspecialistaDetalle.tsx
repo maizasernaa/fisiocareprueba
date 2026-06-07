@@ -190,12 +190,16 @@ export default function EspecialistaDetalle() {
                 </div>
               )}
             </div>
-
-            {/* Botones de Acción */}
+            
+           {/* Botones de Acción */}
             <div className="pt-6 space-y-3">
-              <button className="w-full bg-[#1A5C3A] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#124229] transition shadow-sm">
+              <Link 
+                to={`/agendar/${fisio.id}`} 
+                className="w-full bg-[#1A5C3A] text-white py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-[#124229] transition shadow-sm"
+              >
                 <Calendar className="h-5 w-5" /> Agendar Cita
-              </button>
+              </Link>
+              
               <button className="w-full bg-slate-50 text-slate-700 border border-slate-200 py-4 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-100 transition">
                 <MessageSquare className="h-5 w-5" /> Enviar Mensaje
               </button>
