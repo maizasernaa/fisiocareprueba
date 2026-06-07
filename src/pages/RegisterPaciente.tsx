@@ -61,14 +61,17 @@ export default function RegisterPaciente() {
           return; // Detenemos la ejecución aquí
         }
 
-        // 3. Inserción/Actualización en pacientes (Si la sesión ya está activa)
+        // 3. Inserción/Actualización en pacientes
         const { error: profileError } = await supabase.from('pacientes').upsert([{ 
           id: data.user.id, 
           nombre_completo: nombre, 
-          telefono 
+          telefono: telefono 
         }]);
 
-        if (profileError) throw profileError;
+        if (profileError) {
+          alert("ERROR EN LA BASE DE DATOS:\n" + profileError.message + "\nDetalles: " + profileError.details);
+          return; 
+        }
         
         alert("Cuenta creada con éxito");
         navigate('/dashboard-paciente');
