@@ -120,7 +120,7 @@ export default function Step5Confirmacion({ fisio, data }: any) {
         </div>
       </div>
 
-      {/* Botones Finales */}
+      {/* Botones Finalesss */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
         <button 
           onClick={() => navigate('/especialistas')}
