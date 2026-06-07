@@ -1,8 +1,35 @@
-import { useState } from 'react';
-import { Home as HomeIcon, Video } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { Home as HomeIcon, Video, MapPin } from 'lucide-react';
 
 export default function Step1Modalidad({ fisio, data, onNext }: any) {
   const [modalidad, setModalidad] = useState(data.modalidad || '');
+  const [distritos, setDistritos] = useState<any[]>([]);
+  const [distritoId, setDistritoId] = useState(data.distrito_id || '');
+  const [direccion, setDireccion] = useState(data.direccion_exacta || '');
+
+  // Cargar distritos desde la base de datos
+  useEffect(() => {
+    const fetchDistritos = async () => {
+      const { data: dData } = await supabase.from('distritos').select('id, nombre');
+      if (dData) setDistritos(dData);
+    };
+    fetchDistritos();
+  }, []);
+
+  // Validación en tiempo real:
+  // Si es videollamada, basta con seleccionarlo. 
+  // Si es domicilio, exige distrito y dirección.
+  const isValido = modalidad === 'videollamada' || 
+                   (modalidad === 'domicilio' && distritoId !== '' && direccion.trim() !== '');
+
+  const handleContinue = () => {
+    onNext({
+      modalidad,
+      distrito_id: modalidad === 'domicilio' ? distritoId : null,
+      direccion_exacta: modalidad === 'domicilio' ? direccion : null
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -11,6 +38,7 @@ export default function Step1Modalidad({ fisio, data, onNext }: any) {
         <p className="text-slate-500 text-sm mt-1">¿Cómo prefieres tu sesión?</p>
       </div>
 
+      {/* Botones de Selección de Modalidad */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <button
           disabled={!fisio?.ofrece_domicilio}
@@ -41,10 +69,47 @@ export default function Step1Modalidad({ fisio, data, onNext }: any) {
         </button>
       </div>
 
+      {/* FORMULARIO DE DIRECCIÓN (Aparece dinámicamente aquí en el Paso 1) */}
+      {modalidad === 'domicilio' && (
+        <div className="space-y-4 pt-4 border-t border-slate-100 animate-fadeIn">
+          <h3 className="font-bold text-[#0A1E3D] text-sm flex items-center gap-2 uppercase tracking-wider text-slate-400">
+            <MapPin className="h-4 w-4 text-[#1A5C3A]" /> Dirección de atención
+          </h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-500">Distrito</label>
+              <select
+                value={distritoId}
+                onChange={(e) => setDistritoId(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm focus:outline-none focus:border-[#1A5C3A] focus:bg-white transition"
+              >
+                <option value="">Selecciona tu distrito</option>
+                {distritos.map(d => (
+                  <option key={d.id} value={d.id}>{d.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-slate-500">Dirección exacta</label>
+              <input
+                type="text"
+                placeholder="Ej. Av. Primavera 456, Dpto 201"
+                value={direccion}
+                onChange={(e) => setDireccion(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm focus:outline-none focus:border-[#1A5C3A] focus:bg-white transition"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Botón de navegación */}
       <div className="mt-10 pt-6 border-t border-slate-100 flex justify-end">
         <button 
-          onClick={() => onNext({ modalidad })}
-          disabled={!modalidad}
+          onClick={handleContinue}
+          disabled={!isValido}
           className="bg-[#6B8A9E] hover:bg-[#5a7689] text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Continuar →
