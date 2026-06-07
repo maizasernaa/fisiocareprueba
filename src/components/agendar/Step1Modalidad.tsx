@@ -1,25 +1,15 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabase';
+import { useState } from 'react';
 import { Home as HomeIcon, Video, MapPin } from 'lucide-react';
 
 export default function Step1Modalidad({ fisio, data, onNext }: any) {
   const [modalidad, setModalidad] = useState(data.modalidad || '');
-  const [distritos, setDistritos] = useState<any[]>([]);
   const [distritoId, setDistritoId] = useState(data.distrito_id || '');
   const [direccion, setDireccion] = useState(data.direccion_exacta || '');
 
-  // Cargar distritos desde la base de datos
-  useEffect(() => {
-    const fetchDistritos = async () => {
-      const { data: dData } = await supabase.from('distritos').select('id, nombre');
-      if (dData) setDistritos(dData);
-    };
-    fetchDistritos();
-  }, []);
+  // Extraemos SOLO los distritos que este fisio atiende
+  const distritosDelFisio = fisio?.fisioterapeuta_distritos?.map((fd: any) => fd.distritos) || [];
 
   // Validación en tiempo real:
-  // Si es videollamada, basta con seleccionarlo. 
-  // Si es domicilio, exige distrito y dirección.
   const isValido = modalidad === 'videollamada' || 
                    (modalidad === 'domicilio' && distritoId !== '' && direccion.trim() !== '');
 
@@ -69,7 +59,7 @@ export default function Step1Modalidad({ fisio, data, onNext }: any) {
         </button>
       </div>
 
-      {/* FORMULARIO DE DIRECCIÓN (Aparece dinámicamente aquí en el Paso 1) */}
+      {/* FORMULARIO DE DIRECCIÓN */}
       {modalidad === 'domicilio' && (
         <div className="space-y-4 pt-4 border-t border-slate-100 animate-fadeIn">
           <h3 className="font-bold text-[#0A1E3D] text-sm flex items-center gap-2 uppercase tracking-wider text-slate-400">
@@ -85,8 +75,8 @@ export default function Step1Modalidad({ fisio, data, onNext }: any) {
                 className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-sm focus:outline-none focus:border-[#1A5C3A] focus:bg-white transition"
               >
                 <option value="">Selecciona tu distrito</option>
-                {distritos.map(d => (
-                  <option key={d.id} value={d.id}>{d.nombre}</option>
+                {distritosDelFisio.map((d: any) => (
+                  <option key={d?.id} value={d?.id}>{d?.nombre}</option>
                 ))}
               </select>
             </div>
