@@ -9,7 +9,7 @@ export default function Step5Confirmacion({ fisio, data }: any) {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-   const crearCitaEnBaseDeDatos = async () => {
+    const crearCitaEnBaseDeDatos = async () => {
       try {
         // 1. Obtener el usuario actual de Auth
         const { data: { user } } = await supabase.auth.getUser();
@@ -28,9 +28,8 @@ export default function Step5Confirmacion({ fisio, data }: any) {
             .from('pacientes')
             .insert([{
               id: user.id,
-              // Usamos datos genéricos o del email por ahora para que no falle si tienes campos NOT NULL
-              nombres: user.email?.split('@')[0] || 'Paciente',
-              apellidos: 'Nuevo',
+              // Usamos la columna real de tu base de datos: nombre_completo
+              nombre_completo: user.email?.split('@')[0] || 'Paciente Nuevo',
               telefono: '000000000' 
             }]);
             
@@ -123,19 +122,4 @@ export default function Step5Confirmacion({ fisio, data }: any) {
 
       {/* Botones Finales */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
-        <button 
-          onClick={() => navigate('/especialistas')}
-          className="w-full py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition"
-        >
-          Buscar más
-        </button>
-        <button 
-          onClick={() => navigate('/dashboard-paciente')}
-          className="w-full py-3.5 rounded-xl bg-[#0A1E3D] text-white font-bold flex items-center justify-center gap-2 hover:bg-[#122d5a] transition"
-        >
-          <Home className="h-4 w-4" /> Ir a mi panel
-        </button>
-      </div>
-    </div>
-  );
-}
+        <button
