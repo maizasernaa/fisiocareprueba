@@ -1,11 +1,16 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Activity, Menu, X } from 'lucide-react';
-
+import { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Activity, Menu, X, LayoutDashboard, LogOut } from 'lucide-react';
+import { supabase } from '../lib/supabase'; // Ajusta la ruta si es necesario
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Estados para la sesión
+  const [user, setUser] = useState<any>(null);
+  const [rol, setRol] = useState<'paciente' | 'fisio' | null>(null);
   
   const isSelected = (path: string) => location.pathname === path;
 
@@ -16,9 +21,49 @@ export default function Navbar() {
     { name: '¿Cómo funciona?', path: '/como-funciona' }
   ];
 
-
   // Función para cerrar el menú móvil al hacer clic en un enlace
   const closeMenu = () => setIsOpen(false);
+
+  // EFECTO DE AUTENTICACIÓN
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      if (session?.user) determinarRol(session.user.id);
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+      if (session?.user) {
+        determinarRol(session.user.id);
+      } else {
+        setRol(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const determinarRol = async (userId: string) => {
+    const { data: fisio } = await supabase
+      .from('fisioterapeutas')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (fisio) {
+      setRol('fisio');
+    } else {
+      setRol('paciente');
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate('/');
+  };
 
   return (
     <nav className="bg-white border-b border-slate-200 sticky top-0 z-50 font-sans">
@@ -47,23 +92,45 @@ export default function Navbar() {
               {item.name}
             </Link>
           ))}
-        
         </div>
 
         {/* Acciones Desktop */}
         <div className="hidden lg:flex items-center gap-4">
-          <Link 
-            to="/login"
-            className="px-5 py-2.5 rounded-lg text-sm font-bold text-slate-600 border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all duration-200"
-          >
-            Iniciar sesión
-          </Link>
-          <Link 
-            to="/seleccion-registro"
-            className="bg-[#0A1E3D] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#122d5a] transition"
-          >
-            Registrarse
-          </Link>
+          {user ? (
+            // VISTA LOGUEADO: Botones de Panel y Salir
+            <div className="flex items-center gap-3">
+              <Link 
+                to={rol === 'fisio' ? '/dashboard-fisio' : '/dashboard-paciente'}
+                className="flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-bold text-slate-600 bg-slate-50 hover:bg-slate-100 hover:text-[#0A1E3D] transition-all border border-slate-200"
+              >
+                <LayoutDashboard className="h-4 w-4" />
+                Mi Panel
+              </Link>
+              <button 
+                onClick={handleLogout}
+                className="flex items-center justify-center p-2.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all"
+                title="Cerrar sesión"
+              >
+                <LogOut className="h-5 w-5" />
+              </button>
+            </div>
+          ) : (
+            // VISTA VISITANTE: Botones Originales
+            <>
+              <Link 
+                to="/login"
+                className="px-5 py-2.5 rounded-lg text-sm font-bold text-slate-600 border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all duration-200"
+              >
+                Iniciar sesión
+              </Link>
+              <Link 
+                to="/seleccion-registro"
+                className="bg-[#0A1E3D] text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-[#122d5a] transition"
+              >
+                Registrarse
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Botón Menú Hamburguesa (Solo Móvil) */}
@@ -103,63 +170,44 @@ export default function Navbar() {
 
           {/* Botones Móvil */}
           <div className="flex flex-col gap-3">
-    
             <div className="grid grid-cols-2 gap-3 mt-2">
-              <Link 
-                to="/login"
-                onClick={closeMenu}
-                className="flex justify-center items-center px-4 py-3.5 rounded-xl text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition"
-              >
-                Iniciar sesión
-              </Link>
-              <Link 
-                to="/seleccion-registro"
-                onClick={closeMenu}
-                className="flex justify-center items-center bg-[#0A1E3D] text-white px-4 py-3.5 rounded-xl text-sm font-bold hover:bg-[#122d5a] transition"
-              >
-                Registrarse
-              </Link>
+              {user ? (
+                // VISTA LOGUEADO MÓVIL
+                <>
+                  <Link 
+                    to={rol === 'fisio' ? '/dashboard-fisio' : '/dashboard-paciente'}
+                    onClick={closeMenu}
+                    className="flex justify-center items-center gap-2 px-4 py-3.5 rounded-xl text-sm font-bold text-[#0A1E3D] border border-slate-200 bg-slate-50 hover:bg-slate-100 transition"
+                  >
+                    <LayoutDashboard className="h-4 w-4" /> Panel
+                  </Link>
+                  <button 
+                    onClick={() => { closeMenu(); handleLogout(); }}
+                    className="flex justify-center items-center gap-2 bg-red-50 text-red-600 px-4 py-3.5 rounded-xl text-sm font-bold hover:bg-red-100 transition"
+                  >
+                    <LogOut className="h-4 w-4" /> Salir
+                  </button>
+                </>
+              ) : (
+                // VISTA VISITANTE MÓVIL
+                <>
+                  <Link 
+                    to="/login"
+                    onClick={closeMenu}
+                    className="flex justify-center items-center px-4 py-3.5 rounded-xl text-sm font-bold text-slate-600 border border-slate-200 hover:bg-slate-50 transition"
+                  >
+                    Iniciar sesión
+                  </Link>
+                  <Link 
+                    to="/seleccion-registro"
+                    onClick={closeMenu}
+                    className="flex justify-center items-center bg-[#0A1E3D] text-white px-4 py-3.5 rounded-xl text-sm font-bold hover:bg-[#122d5a] transition"
+                  >
+                    Registrarse
+                  </Link>
+                </>
+              )}
             </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
           </div>
 
         </div>
