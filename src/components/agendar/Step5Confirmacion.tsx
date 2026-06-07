@@ -16,11 +16,11 @@ export default function Step5Confirmacion({ fisio, data }: any) {
         if (!user) throw new Error("No se encontró sesión de usuario");
 
         // 2. VERIFICACIÓN: Comprobar si ya existe en la tabla 'pacientes'
-        const { data: pacienteExistente} = await supabase
+        const { data: pacienteExistente } = await supabase
           .from('pacientes')
           .select('id')
           .eq('id', user.id)
-          .maybeSingle(); // maybeSingle devuelve null si no hay filas (en lugar de dar error)
+          .maybeSingle();
 
         // 3. CREACIÓN AUTOMÁTICA: Si no existe, lo insertamos para cumplir la llave foránea
         if (!pacienteExistente) {
@@ -36,7 +36,7 @@ export default function Step5Confirmacion({ fisio, data }: any) {
           if (insertPacienteError) throw new Error("No se pudo crear el perfil base del paciente: " + insertPacienteError.message);
         }
 
-        // 4. Insertar la cita (ahora 100% seguros de que la llave foránea hará match)
+        // 4. Insertar la cita
         const { error: insertCitaError } = await supabase
           .from('citas')
           .insert([{
@@ -122,4 +122,19 @@ export default function Step5Confirmacion({ fisio, data }: any) {
 
       {/* Botones Finales */}
       <div className="flex flex-col sm:flex-row gap-3 pt-4">
-        <button
+        <button 
+          onClick={() => navigate('/especialistas')}
+          className="w-full py-3.5 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition"
+        >
+          Buscar más
+        </button>
+        <button 
+          onClick={() => navigate('/dashboard-paciente')}
+          className="w-full py-3.5 rounded-xl bg-[#0A1E3D] text-white font-bold flex items-center justify-center gap-2 hover:bg-[#122d5a] transition"
+        >
+          <Home className="h-4 w-4" /> Ir a mi panel
+        </button>
+      </div>
+    </div>
+  );
+}
