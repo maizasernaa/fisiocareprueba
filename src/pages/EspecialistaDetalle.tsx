@@ -6,7 +6,6 @@ import {
   User,
   CheckCircle,
   Star,
-  MapPin,
   Shield,
   Briefcase,
   Home as HomeIcon,
