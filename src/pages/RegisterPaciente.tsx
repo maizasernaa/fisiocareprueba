@@ -41,14 +41,13 @@ export default function RegisterPaciente() {
       const { data, error: signUpError } = await supabase.auth.signUp({ 
         email, 
         password,
-        options: { data: { rol: 'paciente' } } // Pasamos el rol aquí
+        options: { data: { rol: 'paciente' } }
       });
 
       if (signUpError) throw signUpError;
 
       if (data.user) {
         // 2. Inserción/Actualización en pacientes
-        // Upsert evita errores de duplicidad si el Trigger ya creó el registro base
         const { error: profileError } = await supabase.from('pacientes').upsert([{ 
           id: data.user.id, 
           nombre_completo: nombre, 
@@ -66,48 +65,94 @@ export default function RegisterPaciente() {
     }
   };
 
-  // ... resto del JSX igual que tenías ...
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] p-4">
-      <div className="flex items-center gap-2 mb-8 text-[#0A1E3D]">
-        <div className="bg-[#0A1E3D] p-2 rounded-xl"><Activity className="h-6 w-6 text-white" /></div>
-        <span className="text-2xl font-bold tracking-tight">FisioCare</span>
+    <div className="min-h-[calc(100dvh-5rem)] sm:min-h-screen flex flex-col items-center justify-center bg-[#F8FAFC] p-4 pb-20 sm:pb-6">
+      
+      {/* Logo Superior */}
+      <div className="flex items-center gap-2 mb-6 sm:mb-8 text-[#0A1E3D]">
+        <div className="bg-[#0A1E3D] p-2 rounded-xl">
+          <Activity className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+        </div>
+        <span className="text-xl sm:text-2xl font-bold tracking-tight">FisioCare</span>
       </div>
 
-      <div className="w-full max-w-md bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-        <h2 className="text-2xl font-bold text-[#0A1E3D] mb-1">Crea tu cuenta</h2>
-        <p className="text-slate-500 mb-6">Empieza a usar FisioCare hoy</p>
+      {/* Tarjeta Principal */}
+      <div className="w-full max-w-md bg-white p-6 sm:p-8 rounded-[1.5rem] shadow-sm border border-slate-100">
+        <h2 className="text-xl sm:text-2xl font-bold text-[#0A1E3D] mb-1">Crea tu cuenta</h2>
+        <p className="text-slate-500 mb-6 text-sm sm:text-base">Empieza a usar FisioCare hoy</p>
         
         <form onSubmit={handleRegister} className="space-y-4">
+          
           <div className="space-y-1">
-            <input type="text" placeholder="Nombre completo" className={`w-full p-4 rounded-xl border ${nombreError ? 'border-red-500' : 'border-slate-200'}`} onChange={handleNombreChange} required />
-            {nombreError && <div className="flex items-center gap-1 text-red-500 text-xs px-1"><AlertCircle className="h-3 w-3" /> No puedes ingresar números.</div>}
+            <input 
+              type="text" 
+              placeholder="Nombre completo" 
+              className={`w-full p-3.5 sm:p-4 rounded-xl border text-sm sm:text-base focus:ring-2 focus:ring-[#0A1E3D] outline-none transition ${nombreError ? 'border-red-500' : 'border-slate-200'}`} 
+              onChange={handleNombreChange} 
+              required 
+            />
+            {nombreError && (
+              <div className="flex items-center gap-1 text-red-500 text-[11px] sm:text-xs px-1 mt-1">
+                <AlertCircle className="h-3 w-3 shrink-0" /> No puedes ingresar números.
+              </div>
+            )}
           </div>
 
-          <input type="email" placeholder="Correo electrónico" className="w-full p-4 rounded-xl border border-slate-200" onChange={(e) => setEmail(e.target.value)} required />
+          <input 
+            type="email" 
+            placeholder="Correo electrónico" 
+            className="w-full p-3.5 sm:p-4 rounded-xl border border-slate-200 text-sm sm:text-base focus:ring-2 focus:ring-[#0A1E3D] outline-none transition" 
+            onChange={(e) => setEmail(e.target.value)} 
+            required 
+          />
 
           <div className="flex gap-2">
-            <div className="p-4 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-500 font-medium">+51</div>
-            <input type="tel" placeholder="Teléfono" value={telefono} className="w-full p-4 rounded-xl border border-slate-200" onChange={handleTelefonoChange} maxLength={9} required />
+            <div className="p-3.5 sm:p-4 rounded-xl border border-slate-200 bg-slate-50 text-sm sm:text-base text-slate-500 font-medium flex items-center justify-center shrink-0">
+              +51
+            </div>
+            <input 
+              type="tel" 
+              placeholder="Teléfono" 
+              value={telefono} 
+              className="w-full p-3.5 sm:p-4 rounded-xl border border-slate-200 text-sm sm:text-base focus:ring-2 focus:ring-[#0A1E3D] outline-none transition" 
+              onChange={handleTelefonoChange} 
+              maxLength={9} 
+              required 
+            />
           </div>
 
           <div className="relative">
-            <input type={showPassword ? "text" : "password"} placeholder="Contraseña" className="w-full p-4 rounded-xl border border-slate-200" onChange={(e) => setPassword(e.target.value)} required />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-4 text-slate-400">
+            <input 
+              type={showPassword ? "text" : "password"} 
+              placeholder="Contraseña" 
+              className="w-full p-3.5 sm:p-4 pr-12 rounded-xl border border-slate-200 text-sm sm:text-base focus:ring-2 focus:ring-[#0A1E3D] outline-none transition" 
+              onChange={(e) => setPassword(e.target.value)} 
+              required 
+            />
+            <button 
+              type="button" 
+              onClick={() => setShowPassword(!showPassword)} 
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+            >
               {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
             </button>
           </div>
 
-          <div className="bg-slate-50 p-4 rounded-xl text-xs space-y-1 text-slate-600">
+          <div className="bg-slate-50 p-4 rounded-xl text-[11px] sm:text-xs space-y-1.5 text-slate-600 border border-slate-100">
             <ValidationItem label="Mínimo 8 caracteres" isValid={rules.length} />
             <ValidationItem label="Una letra mayúscula" isValid={rules.upper} />
             <ValidationItem label="Un número" isValid={rules.number} />
             <ValidationItem label="Un carácter especial (@$!%*?&)" isValid={rules.special} />
           </div>
 
-          <button disabled={!isAllValid} type="submit" className="w-full bg-[#0A1E3D] text-white py-4 rounded-xl font-bold hover:bg-[#122d5a] disabled:opacity-50 transition">
+          <button 
+            disabled={!isAllValid} 
+            type="submit" 
+            className="w-full bg-[#0A1E3D] text-white py-3.5 sm:py-4 rounded-xl font-bold text-sm sm:text-base hover:bg-[#122d5a] disabled:opacity-50 transition mt-2"
+          >
             Crear cuenta
           </button>
+
         </form>
       </div>
     </div>
@@ -116,8 +161,8 @@ export default function RegisterPaciente() {
 
 function ValidationItem({ label, isValid }: { label: string, isValid: boolean }) {
   return (
-    <div className={`flex items-center gap-2 ${isValid ? 'text-green-600' : 'text-slate-400'}`}>
-      {isValid ? <Check className="h-3 w-3" /> : <X className="h-3 w-3" />}
+    <div className={`flex items-center gap-2 transition-colors duration-300 ${isValid ? 'text-green-600 font-medium' : 'text-slate-400'}`}>
+      {isValid ? <Check className="h-3.5 w-3.5" /> : <X className="h-3 w-3" />}
       <span>{label}</span>
     </div>
   );
