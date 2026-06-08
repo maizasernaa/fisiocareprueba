@@ -19,12 +19,14 @@ export default function PerfilFisio() {
   const [ofreceDomicilio, setOfreceDomicilio] = useState(false);
   const [ofreceVideollamada, setOfreceVideollamada] = useState(false);
   
-  // Estados de opciones múltiples
-  const [especialidades, setEspecialidades] = useState<string[]>([]);
+  // Estados de opciones múltiples relacionales (BD)
+  const [especialidadesSeleccionadas, setEspecialidadesSeleccionadas] = useState<string[]>([]);
+  const [listaEspecialidadesBD, setListaEspecialidadesBD] = useState<any[]>([]);
+  
   const [distritosSeleccionados, setDistritosSeleccionados] = useState<string[]>([]);
   const [listaDistritosBD, setListaDistritosBD] = useState<any[]>([]);
 
-  // Estado para los 4 documentos (Actualizados según el registro)
+  // Estado para los 4 documentos oficiales
   const [documentos, setDocumentos] = useState({
     diploma: null as File | null,
     colegiatura: null as File | null,
@@ -32,27 +34,28 @@ export default function PerfilFisio() {
     certificados: null as File | null
   });
 
-  const listaEspecialidades = [
-    'Deportiva', 'Traumatológica', 'Neurológica', 'Geriátrica', 
-    'Pediátrica', 'Post-operatoria', 'Terapia Manual', 'Dolor Crónico'
-  ];
-
   useEffect(() => {
     const cargarDatos = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // 1. Cargar todos los distritos disponibles en la BD
-        const { data: distritosData } = await supabase.from('distritos').select('id, nombre').order('nombre');
-        if (distritosData) setListaDistritosBD(distritosData);
+        // 1. Cargar Catálogos (Distritos y Especialidades de tu tabla)
+        const [resDistritos, resEspecialidades] = await Promise.all([
+          supabase.from('distritos').select('id, nombre').order('nombre'),
+          supabase.from('especialidades').select('id, nombre').order('nombre')
+        ]);
 
-        // 2. Cargar datos del fisio
+        if (resDistritos.data) setListaDistritosBD(resDistritos.data);
+        if (resEspecialidades.data) setListaEspecialidadesBD(resEspecialidades.data);
+
+        // 2. Cargar datos del fisio y sus tablas intermedias
         const { data: fisio } = await supabase
           .from('fisioterapeutas')
           .select(`
             *,
-            fisioterapeuta_distritos ( distrito_id )
+            fisioterapeuta_distritos ( distrito_id ),
+            fisioterapeuta_especialidades ( especialidad_id )
           `)
           .eq('id', user.id)
           .single();
@@ -61,34 +64,21 @@ export default function PerfilFisio() {
           setNombres(fisio.nombres || '');
           setApellidos(fisio.apellidos || '');
           
-          // 🚀 LÓGICA A PRUEBA DE BALAS PARA ESPECIALIDADES
-          // Busca en plural o singular
-          const dataEsp = fisio.especialidades || fisio.especialidad;
-          if (dataEsp) {
-            let espCargadas: string[] = [];
-            if (Array.isArray(dataEsp)) {
-              espCargadas = dataEsp; // Si es un arreglo nativo
-            } else if (typeof dataEsp === 'string') {
-              // Si es string, limpiamos posibles corchetes, comillas y separamos por coma
-              const cleanString = dataEsp.replace(/[\[\]"']/g, '');
-              espCargadas = cleanString.split(',');
-            }
-            // Filtramos vacíos y quitamos espacios en blanco
-            setEspecialidades(espCargadas.map((e: string) => e.trim()).filter(e => e !== ''));
-          }
-
-          // 🚀 LÓGICA A PRUEBA DE BALAS PARA LA BIOGRAFÍA
-          // Busca la columna sin importar cómo se llame en tu BD
-          setSobreMi(fisio.sobre_mi || fisio.sobre_ti || fisio.biografia || fisio.experiencia || '');
+          // OJO: Asegúrate de que la columna en Supabase se llame 'sobre_mi', 'biografia' o 'experiencia'
+          setSobreMi(fisio.sobre_mi || fisio.biografia || fisio.experiencia || '');
           
           setPrecioSesion(fisio.precio_sesion || '');
           setOfreceDomicilio(fisio.ofrece_domicilio || false);
           setOfreceVideollamada(fisio.ofrece_videollamada || false);
 
-          // Mapear distritos
+          // Mapear distritos seleccionados
           if (fisio.fisioterapeuta_distritos) {
-            const distritosIds = fisio.fisioterapeuta_distritos.map((fd: any) => fd.distrito_id);
-            setDistritosSeleccionados(distritosIds);
+            setDistritosSeleccionados(fisio.fisioterapeuta_distritos.map((fd: any) => fd.distrito_id));
+          }
+
+          // Mapear especialidades seleccionadas
+          if (fisio.fisioterapeuta_especialidades) {
+            setEspecialidadesSeleccionadas(fisio.fisioterapeuta_especialidades.map((fe: any) => fe.especialidad_id));
           }
         }
       } catch (error) {
@@ -101,9 +91,9 @@ export default function PerfilFisio() {
     cargarDatos();
   }, []);
 
-  const toggleEspecialidad = (esp: string) => {
-    setEspecialidades(prev => 
-      prev.includes(esp) ? prev.filter(e => e !== esp) : [...prev, esp]
+  const toggleEspecialidad = (id: string) => {
+    setEspecialidadesSeleccionadas(prev => 
+      prev.includes(id) ? prev.filter(e => e !== id) : [...prev, id]
     );
   };
 
@@ -132,9 +122,7 @@ export default function PerfilFisio() {
         .update({
           nombres,
           apellidos,
-          // Guardamos las especialidades como texto separado por comas
-          especialidad: especialidades.join(', '), 
-          sobre_mi: sobreMi, 
+          sobre_mi: sobreMi, // <-- Ojo: Debe coincidir con el nombre de tu columna en Supabase
           precio_sesion: precioSesion === '' ? null : Number(precioSesion),
           ofrece_domicilio: ofreceDomicilio,
           ofrece_videollamada: ofreceVideollamada
@@ -143,15 +131,20 @@ export default function PerfilFisio() {
 
       if (errorFisio) throw errorFisio;
 
-      // 2. Actualizar distritos
+      // 2. Actualizar Distritos
       await supabase.from('fisioterapeuta_distritos').delete().eq('fisioterapeuta_id', user.id);
-      
       if (distritosSeleccionados.length > 0) {
-        const distritosInsert = distritosSeleccionados.map(dId => ({
-          fisioterapeuta_id: user.id,
-          distrito_id: dId
-        }));
-        await supabase.from('fisioterapeuta_distritos').insert(distritosInsert);
+        await supabase.from('fisioterapeuta_distritos').insert(
+          distritosSeleccionados.map(dId => ({ fisioterapeuta_id: user.id, distrito_id: dId }))
+        );
+      }
+
+      // 3. Actualizar Especialidades
+      await supabase.from('fisioterapeuta_especialidades').delete().eq('fisioterapeuta_id', user.id);
+      if (especialidadesSeleccionadas.length > 0) {
+        await supabase.from('fisioterapeuta_especialidades').insert(
+          especialidadesSeleccionadas.map(eId => ({ fisioterapeuta_id: user.id, especialidad_id: eId }))
+        );
       }
 
       setMensaje({ tipo: 'exito', texto: '¡Perfil y configuración guardados correctamente!' });
@@ -185,13 +178,12 @@ export default function PerfilFisio() {
               <ArrowLeft className="h-4 w-4" /> Volver a mi panel
             </Link>
             <h1 className="text-3xl font-extrabold text-[#0A1E3D]">Editar Perfil Profesional</h1>
-            <p className="text-slate-500 mt-1">Completa tu información, distritos y documentos faltantes.</p>
+            <p className="text-slate-500 mt-1">Completa tu información, distritos, especialidades y documentos.</p>
           </div>
         </div>
 
         <form onSubmit={guardarCambios} className="space-y-6">
           
-          {/* Alerta */}
           {mensaje && (
             <div className={`p-4 rounded-xl flex items-center gap-3 animate-fadeIn shadow-sm ${
               mensaje.tipo === 'exito' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'
@@ -230,22 +222,26 @@ export default function PerfilFisio() {
                 </h2>
                 
                 <div className="space-y-6">
-                  {/* Especialidades Interactivos */}
+                  {/* Especialidades Dinámicas desde BD */}
                   <div className="space-y-3">
-                    <label className="text-sm font-bold text-slate-700">Especialidades</label>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-bold text-slate-700">Especialidades</label>
+                      <span className="text-xs font-bold bg-slate-100 text-slate-500 px-3 py-1 rounded-full">{especialidadesSeleccionadas.length} seleccionadas</span>
+                    </div>
                     <div className="flex flex-wrap gap-2">
-                      {listaEspecialidades.map((esp) => (
+                      {listaEspecialidadesBD.map((esp) => (
                         <button
-                          type="button" key={esp} onClick={() => toggleEspecialidad(esp)}
+                          type="button" key={esp.id} onClick={() => toggleEspecialidad(esp.id)}
                           className={`px-4 py-2 rounded-xl text-sm font-bold border transition-all ${
-                            especialidades.includes(esp)
+                            especialidadesSeleccionadas.includes(esp.id)
                               ? 'bg-[#1A5C3A] text-white border-[#1A5C3A] shadow-sm'
                               : 'bg-white text-slate-600 border-slate-200 hover:border-[#1A5C3A] hover:bg-slate-50'
                           }`}
                         >
-                          {esp}
+                          {esp.nombre}
                         </button>
                       ))}
+                      {listaEspecialidadesBD.length === 0 && <p className="text-sm text-slate-400 italic">Cargando especialidades...</p>}
                     </div>
                   </div>
 
@@ -255,7 +251,7 @@ export default function PerfilFisio() {
                       <AlignLeft className="h-4 w-4 text-slate-400" /> Sobre ti (Biografía)
                     </label>
                     <textarea
-                      rows={5} value={sobreMi} onChange={(e) => setSobreMi(e.target.value)} placeholder="Cuéntale a tus pacientes sobre tu experiencia, tu enfoque de tratamiento y qué resultados pueden esperar..."
+                      rows={5} value={sobreMi} onChange={(e) => setSobreMi(e.target.value)} placeholder="Cuéntale a tus pacientes sobre tu experiencia, tu enfoque de tratamiento..."
                       className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm focus:outline-none focus:border-[#1A5C3A] focus:bg-white transition resize-none"
                     />
                   </div>
@@ -272,9 +268,6 @@ export default function PerfilFisio() {
                     {distritosSeleccionados.length} seleccionados
                   </span>
                 </div>
-                
-                <p className="text-sm text-slate-500">¿A qué distritos puedes desplazarte para citas a domicilio?</p>
-                
                 <div className="flex flex-wrap gap-2 max-h-60 overflow-y-auto p-1 scrollbar-thin">
                   {listaDistritosBD.map((distrito) => (
                     <button
