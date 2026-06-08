@@ -24,12 +24,12 @@ export default function PerfilFisio() {
   const [distritosSeleccionados, setDistritosSeleccionados] = useState<string[]>([]);
   const [listaDistritosBD, setListaDistritosBD] = useState<any[]>([]);
 
-  // Estado para los 4 documentos
+  // Estado para los 4 documentos (Actualizados según el registro)
   const [documentos, setDocumentos] = useState({
-    dniFrente: null as File | null,
-    dniReverso: null as File | null,
-    titulo: null as File | null,
-    recibo: null as File | null
+    diploma: null as File | null,
+    colegiatura: null as File | null,
+    dni: null as File | null,
+    certificados: null as File | null
   });
 
   const listaEspecialidades = [
@@ -47,7 +47,7 @@ export default function PerfilFisio() {
         const { data: distritosData } = await supabase.from('distritos').select('id, nombre').order('nombre');
         if (distritosData) setListaDistritosBD(distritosData);
 
-        // 2. Cargar datos del fisio y sus distritos relacionados
+        // 2. Cargar datos del fisio
         const { data: fisio } = await supabase
           .from('fisioterapeutas')
           .select(`
@@ -61,20 +61,31 @@ export default function PerfilFisio() {
           setNombres(fisio.nombres || '');
           setApellidos(fisio.apellidos || '');
           
-          // Mapeo seguro de especialidades (limpia espacios extra por si acaso)
-          if (fisio.especialidad) {
-            const espArray = fisio.especialidad.split(',').map((e: string) => e.trim());
-            setEspecialidades(espArray);
+          // 🚀 LÓGICA A PRUEBA DE BALAS PARA ESPECIALIDADES
+          // Busca en plural o singular
+          const dataEsp = fisio.especialidades || fisio.especialidad;
+          if (dataEsp) {
+            let espCargadas: string[] = [];
+            if (Array.isArray(dataEsp)) {
+              espCargadas = dataEsp; // Si es un arreglo nativo
+            } else if (typeof dataEsp === 'string') {
+              // Si es string, limpiamos posibles corchetes, comillas y separamos por coma
+              const cleanString = dataEsp.replace(/[\[\]"']/g, '');
+              espCargadas = cleanString.split(',');
+            }
+            // Filtramos vacíos y quitamos espacios en blanco
+            setEspecialidades(espCargadas.map((e: string) => e.trim()).filter(e => e !== ''));
           }
 
-          // Mapeo seguro de "Sobre ti" (busca la columna correcta)
-          setSobreMi(fisio.sobre_ti || fisio.sobre_mi || fisio.biografia || fisio.experiencia || '');
+          // 🚀 LÓGICA A PRUEBA DE BALAS PARA LA BIOGRAFÍA
+          // Busca la columna sin importar cómo se llame en tu BD
+          setSobreMi(fisio.sobre_mi || fisio.sobre_ti || fisio.biografia || fisio.experiencia || '');
           
           setPrecioSesion(fisio.precio_sesion || '');
           setOfreceDomicilio(fisio.ofrece_domicilio || false);
           setOfreceVideollamada(fisio.ofrece_videollamada || false);
 
-          // Mapear los distritos que ya tenía seleccionados
+          // Mapear distritos
           if (fisio.fisioterapeuta_distritos) {
             const distritosIds = fisio.fisioterapeuta_distritos.map((fd: any) => fd.distrito_id);
             setDistritosSeleccionados(distritosIds);
@@ -121,8 +132,9 @@ export default function PerfilFisio() {
         .update({
           nombres,
           apellidos,
+          // Guardamos las especialidades como texto separado por comas
           especialidad: especialidades.join(', '), 
-          sobre_mi: sobreMi, // <-- Ojo: si tu columna se llama diferente en Supabase, cámbialo aquí
+          sobre_mi: sobreMi, 
           precio_sesion: precioSesion === '' ? null : Number(precioSesion),
           ofrece_domicilio: ofreceDomicilio,
           ofrece_videollamada: ofreceVideollamada
@@ -131,7 +143,7 @@ export default function PerfilFisio() {
 
       if (errorFisio) throw errorFisio;
 
-      // 2. Actualizar distritos (Borrar los viejos e insertar los nuevos)
+      // 2. Actualizar distritos
       await supabase.from('fisioterapeuta_distritos').delete().eq('fisioterapeuta_id', user.id);
       
       if (distritosSeleccionados.length > 0) {
@@ -141,9 +153,6 @@ export default function PerfilFisio() {
         }));
         await supabase.from('fisioterapeuta_distritos').insert(distritosInsert);
       }
-
-      // 3. (Opcional Futuro) Lógica de subida de archivos al Storage
-      // if (documentos.dniFrente) await supabase.storage.from('documentos').upload(...)
 
       setMensaje({ tipo: 'exito', texto: '¡Perfil y configuración guardados correctamente!' });
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -246,7 +255,7 @@ export default function PerfilFisio() {
                       <AlignLeft className="h-4 w-4 text-slate-400" /> Sobre ti (Biografía)
                     </label>
                     <textarea
-                      rows={5} value={sobreMi} onChange={(e) => setSobreMi(e.target.value)} placeholder="Cuéntale a tus pacientes sobre tu experiencia, tu enfoque de tratamiento..."
+                      rows={5} value={sobreMi} onChange={(e) => setSobreMi(e.target.value)} placeholder="Cuéntale a tus pacientes sobre tu experiencia, tu enfoque de tratamiento y qué resultados pueden esperar..."
                       className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl text-sm focus:outline-none focus:border-[#1A5C3A] focus:bg-white transition resize-none"
                     />
                   </div>
@@ -279,9 +288,6 @@ export default function PerfilFisio() {
                       {distrito.nombre}
                     </button>
                   ))}
-                  {listaDistritosBD.length === 0 && (
-                    <p className="text-sm text-slate-400 italic">Cargando distritos...</p>
-                  )}
                 </div>
               </div>
 
@@ -328,15 +334,14 @@ export default function PerfilFisio() {
                 <h2 className="text-lg font-bold text-[#0A1E3D] flex items-center gap-2 border-b border-slate-100 pb-3">
                   <UploadCloud className="h-5 w-5 text-[#1A5C3A]" /> Documentos
                 </h2>
-                <p className="text-xs text-slate-500">Añade los archivos que te faltaron en el registro para verificar tu perfil.</p>
+                <p className="text-xs text-slate-500">Añade los archivos que te faltaron en el registro.</p>
                 
                 <div className="space-y-3">
-                  {/* Renderizamos los 4 tipos de documentos dinámicamente */}
                   {[
-                    { id: 'dniFrente', label: 'DNI (Frente)' },
-                    { id: 'dniReverso', label: 'DNI (Reverso)' },
-                    { id: 'titulo', label: 'Título / Colegiatura' },
-                    { id: 'recibo', label: 'Recibo de Servicios' }
+                    { id: 'diploma', label: 'Diploma de Fisioterapia' },
+                    { id: 'colegiatura', label: 'Certificado de Colegiatura' },
+                    { id: 'dni', label: 'DNI (Anverso y Reverso)' },
+                    { id: 'certificados', label: 'Certificados (Opcional)' }
                   ].map((doc) => (
                     <div key={doc.id} className="relative">
                       <input 
