@@ -15,6 +15,7 @@ import {
 
 export default function Landing() {
   const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-white text-slate-800 antialiased font-body flex flex-col overflow-x-hidden">
 
@@ -130,8 +131,8 @@ export default function Landing() {
                 desc: 'Reseñas reales, especialidades claras y precios transparentes para elegir mejor.',
                 color: 'bg-[#FEF3F2] text-[#E03B2A]',
               },
-            ].map(({ icon, title, desc, color }) => (
-              <div key={title} className="bg-white p-6 sm:p-8 rounded-[1.5rem] border border-slate-100 shadow-sm hover:shadow-md transition duration-300 space-y-4 sm:space-y-5">
+            ].map(({ icon, title, desc, color }, idx) => (
+              <div key={idx} className="bg-white p-6 sm:p-8 rounded-[1.5rem] border border-slate-100 shadow-sm hover:shadow-md transition duration-300 space-y-4 sm:space-y-5">
                 <div className={h-12 w-12 rounded-2xl flex items-center justify-center ${color}}>
                   {icon}
                 </div>
@@ -236,12 +237,12 @@ export default function Landing() {
               title: 'Profesionales',
               links: ['Únete como fisio', 'Registrarme'],
             },
-          ].map(({ title, links }) => (
-            <div key={title} className="space-y-3">
+          ].map(({ title, links }, idx) => (
+            <div key={idx} className="space-y-3">
               <h4 className="text-white text-sm font-semibold">{title}</h4>
               <ul className="text-xs space-y-2.5">
-                {links.map(l => (
-                  <li key={l}><a href="#" className="hover:text-white transition">{l}</a></li>
+                {links.map((l, lIdx) => (
+                  <li key={lIdx}><a href="#" className="hover:text-white transition">{l}</a></li>
                 ))}
               </ul>
             </div>
