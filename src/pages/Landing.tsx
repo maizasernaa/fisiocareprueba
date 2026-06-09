@@ -28,7 +28,7 @@ export default function Landing() {
 
             <div className="inline-flex items-center gap-2 tag-badge bg-white px-3.5 py-1.5 rounded-full text-xs font-semibold shadow-sm/50">
               <CheckCircle className="h-3.5 w-3.5 text-green-600" />
-              Fisioterapeutas verificados en Lima
+              Fisioterapeuta verificados en Lima.
             </div>
 
             <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.6rem] font-semibold text-[#0A1E3D] leading-[1.1] tracking-tight">
